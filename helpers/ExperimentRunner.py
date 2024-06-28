@@ -21,7 +21,7 @@ class ExperimentRunner:
         mean_per_timestep['alg_name'] = alg_name
         mean_per_timestep = mean_per_timestep.set_index('alg_name')
         self.all_results_part1 = pd.concat(
-            [self.all_results_part1, pd.DataFrame(mean_per_timestep)], axis=0)
+            [self.all_results_part1, pd.DataFrame(mean_per_timestep.cumsum(1))], axis=0)
 
     def plot_part1(self):
         ax = self.all_results_part1.T.plot(
@@ -45,13 +45,15 @@ class ExperimentRunner:
         all_mean_value_per_alg_df.columns = [exp_range]
         return all_mean_value_per_alg_df
 
-    def plot_part2(self, df1, df2, df3):
+    def plot_part2(self, df1, df2, df3, df4):
         plt.plot(list(
             df1.columns.get_level_values(0)), df1.values.flatten(), label="e-greedy")
         plt.plot(list(
             df2.columns.get_level_values(0)), df2.values.flatten(), label="greedy")
         plt.plot(list(
             df3.columns.get_level_values(0)), df3.values.flatten(), label="ucb")
+        plt.plot(list(
+            df4.columns.get_level_values(0)), df4.values.flatten(), label="ncb")
         ax = plt.gca()
         ax.set_title(
             'Summary of Results for Multi-Armed Bandit with different algorithms')

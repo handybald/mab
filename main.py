@@ -2,6 +2,7 @@
 from algorithms.Egreedy import Egreedy
 from algorithms.Greedy import Greedy
 from algorithms.UpperConfidenceBound import UpperConfidenceBound
+from algorithms.NewConfidenceBound import NewConfidenceBound
 from classes.MultiArmBandit import MultiArmBandit
 from helpers.ExperimentRunner import ExperimentRunner
 import argparse
@@ -18,7 +19,8 @@ def main():
     parser.add_argument('--num-runs', type=int, default=10, metavar='N',
                         help='Number of runs to repeat and average for each algorithm.')
     args = parser.parse_args()
-    mab = MultiArmBandit(args.num_arms)
+    period = 5
+    mab = MultiArmBandit(args.num_arms, period=period)
     experiment_runner = ExperimentRunner()
 
     # Part 1 - A plot of reward over time (averaged over 100 runs each) on the
@@ -27,17 +29,21 @@ def main():
     eps = 0.1
     eps_greedy = Egreedy(eps=eps, mab=mab)
     experiment_runner.runExperiments_part1(alg=eps_greedy,
-                                           max_steps=1000, num_runs=100, alg_name=f'e-greedy with e={eps}')
+                                           max_steps=1000, num_runs=300, alg_name=f'e-greedy with e={eps}')
 
     q1 = 5
     greedy_optimistic_ini = Greedy(Q1=q1, mab=mab)
     experiment_runner.runExperiments_part1(alg=greedy_optimistic_ini,
-                                           max_steps=1000, num_runs=100, alg_name=f'Greedy with Q1={q1}')
+                                           max_steps=1000, num_runs=300, alg_name=f'Greedy with Q1={q1}')
 
     c = 2
     upper_bound_conf = UpperConfidenceBound(c=c, mab=mab)
     experiment_runner.runExperiments_part1(alg=upper_bound_conf,
-                                           max_steps=1000, num_runs=100, alg_name=f'UCB with c={c}')
+                                           max_steps=1000, num_runs=300, alg_name=f'UCB with c={c}')
+    
+    new_bound_conf = NewConfidenceBound(mab=mab, period=5, max_steps=1000)
+    experiment_runner.runExperiments_part1(alg=new_bound_conf,
+                                           max_steps=1000, num_runs=300, alg_name=f'NCB')
 
     experiment_runner.plot_part1()
     # Part 2 - A summary comparison plot of rewards over first 1000 steps for
@@ -68,9 +74,16 @@ def main():
         upper_bound_conf_algs.append(upper_bound_conf)
     ucb_results = experiment_runner.runExperiments_part2(algs=upper_bound_conf_algs, exp_range=c_range,
                                                          max_steps=1000, alg_name='ucb')
+    #NCB
+    p_range = [5, 10, 20, 50, 100]
+    new_bound_conf_algs = []
+    for p in p_range:
+        new_bound_conf = NewConfidenceBound(mab=mab, period=p, max_steps=1000)
+        new_bound_conf_algs.append(new_bound_conf)
+    ncb_results = experiment_runner.runExperiments_part2(algs=new_bound_conf_algs, exp_range=p_range, max_steps=1000, alg_name='ncb')
     # plot
     experiment_runner.plot_part2(
-        eps_greedy_results, greedy_results, ucb_results)
+        eps_greedy_results, greedy_results, ucb_results, ncb_results)
     plt.show()
 
 
