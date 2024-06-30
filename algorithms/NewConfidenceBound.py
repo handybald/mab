@@ -1,3 +1,5 @@
+# New Confidence Bound Algorihm
+
 import numpy as np
 import math
 
@@ -14,6 +16,7 @@ class NewConfidenceBound:
         self.reward_t = np.zeros(max_steps)
         self.observed_times = [[] for _ in range(self.num_arms)]  # Initialize as lists of lists
         self.observed_rewards = [[] for _ in range(self.num_arms)]
+        self.phase_shifts = np.zeros(self.num_arms)
 
     def run(self, max_steps, debug=False):
         num_steps = 0
@@ -36,7 +39,7 @@ class NewConfidenceBound:
         predicted_rewards = []
         for arm in range(self.num_arms):
             a0, a1, b1 = self.fourier_coefficients[arm]
-            predicted_reward = a0 + a1 * np.cos(2 * np.pi * t / self.period) + b1 * np.sin(2 * np.pi * t / self.period)
+            predicted_reward = a0 + a1 * np.cos(2 * np.pi * t / self.period + self.phase_shifts[arm]) + b1 * np.sin(2 * np.pi * t / self.period + self.phase_shifts[arm])
             predicted_rewards.append(predicted_reward)
         arm_to_pull = np.argmax(predicted_rewards)
         return arm_to_pull
@@ -61,7 +64,6 @@ class NewConfidenceBound:
 
         # Normalize times by the period to bring them within a single period cycle
         normalized_times = 2 * np.pi * (times % self.period) / self.period
-
         # Calculate Fourier coefficients
         # a0: Average of the rewards (DC component)
         a0 = np.mean(rewards)
@@ -74,6 +76,12 @@ class NewConfidenceBound:
 
         # Update the Fourier coefficients for the arm
         self.fourier_coefficients[arm] = [a0, a1, b1]
+        
+        if a1 != 0:
+            self.phase_shifts[arm] = np.arctan(b1 / a1)
+        else:
+            # Handle the case where a1 is zero to avoid division by zero
+            self.phase_shifts[arm] = 0  # or some other logic as needed
     
     def getParameters(self):
         return self.Q_a, self.N_a, self.total_reward, self.reward_t, self.observed_times, self.observed_rewards
@@ -87,4 +95,5 @@ class NewConfidenceBound:
         self.reward_t = np.zeros(self.max_steps)
         self.observed_times = [[] for _ in range(self.num_arms)]
         self.observed_rewards = [[] for _ in range(self.num_arms)]
+        self.phase_shifts = np.zeros(self.num_arms)
 

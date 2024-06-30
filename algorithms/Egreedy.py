@@ -1,3 +1,5 @@
+# EGreedy Algorithm
+
 import numpy as np
 
 
@@ -54,3 +56,5 @@ class Egreedy:
         self.Q_a = np.zeros(self.num_arms)
         self.N_a = np.zeros(self.num_arms)
         self.total_reward = 0
+        self.observed_times = [[] for _ in range(self.num_arms)]
+        self.observed_rewards = [[] for _ in range(self.num_arms)]

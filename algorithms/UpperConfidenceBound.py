@@ -1,10 +1,13 @@
+# Upper Confidence Bound Algorithm
+
 import numpy as np
 import math
 
 
 class UpperConfidenceBound:
-    def __init__(self, c, mab):
+    def __init__(self, c, mab, max_steps):
         self.mab = mab
+        self.max_steps = max_steps
         self.num_arms = mab.num_arms
         self.Q_a = np.zeros(self.num_arms)
         self.N_a = np.zeros(self.num_arms)
@@ -15,7 +18,7 @@ class UpperConfidenceBound:
 
     def run(self, max_steps, debug=False):
         # Store reward at each t
-        self.reward_t = np.zeros(max_steps)
+        self.reward_t = np.zeros(self.max_steps)
         # pull each arm once
         for i in range(self.num_arms):
             current_reward = self.mab.pull_arm(i, i)
@@ -58,3 +61,7 @@ class UpperConfidenceBound:
         self.Q_a = np.zeros(self.num_arms)
         self.N_a = np.zeros(self.num_arms)
         self.total_reward = 0
+        self.reward_t = np.zeros(self.max_steps)
+        self.observed_times = [[] for _ in range(self.num_arms)]
+        self.observed_rewards = [[] for _ in range(self.num_arms)]
+

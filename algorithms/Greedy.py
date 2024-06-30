@@ -1,3 +1,5 @@
+# Greedy Algorithm
+
 import numpy as np
 
 
@@ -47,3 +49,5 @@ class Greedy:
         self.Q_a = np.full((self.num_arms), self.Q1)
         self.N_a = np.zeros(self.num_arms)
         self.total_reward = 0
+        self.observed_times = [[] for _ in range(self.num_arms)]
+        self.observed_rewards = [[] for _ in range(self.num_arms)]
