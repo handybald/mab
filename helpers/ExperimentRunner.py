@@ -149,7 +149,7 @@ class ExperimentRunner:
         
         ax.plot(cumsumArrayNCB, label="ECAD",
             color = colors[0], linestyle="-", linewidth=2)
-        ax.text(numFraud, cumsumArrayNCB[-1] - 0.01, "NCB",
+        ax.text(numFraud, cumsumArrayNCB[-1] - 0.01, "ECAD",
             color=colors[0], fontweight="normal", horizontalalignment="left", verticalalignment="center")
         ax.plot(cumsumArrayUCB, label="UCB",
             color = colors[1], linestyle="-", linewidth=2)
@@ -175,7 +175,7 @@ class ExperimentRunner:
         ax.xaxis.set_ticks_position("bottom")
         ax.spines["bottom"].set_bounds(0,numFraud)
         ax.set_ylabel(f'Total Reward over {self.num_runs} runs')
-        ax.set_xlabel(f'Number of Frauds')
+        ax.set_xlabel(f'Number of Fraud End Devices')
         fig.tight_layout()
         #create the directory if it does not exist
         directory = "plots/" + self.figSaveDir
@@ -237,7 +237,7 @@ class ExperimentRunner:
         ax.xaxis.set_ticks_position("bottom")
         ax.spines["bottom"].set_bounds(0,numFraud)
         ax.set_ylabel(f'Total Regret over {self.num_runs} runs')
-        ax.set_xlabel(f'Number of Frauds')
+        ax.set_xlabel(f'Number of Fraud End Devices')
         fig.tight_layout()
         #create the directory if it does not exist
         directory = "plots/" + self.figSaveDir
@@ -270,7 +270,7 @@ class ExperimentRunner:
         plt.plot(list(
             df3.columns.get_level_values(0)), df3.values.flatten(), label="ucb")
         plt.plot(list(
-            df4.columns.get_level_values(0)), df4.values.flatten(), label="ncb")
+            df4.columns.get_level_values(0)), df4.values.flatten(), label="ECAD")
         ax = plt.gca()
         ax.set_title(
             'Summary of Results for Multi-Armed Bandit with different algorithms')

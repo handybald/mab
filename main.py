@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors
 
 
-def main(part1, part2, part3):
+def main(part1, part2, part3, part4):
     np.random.seed(42)
     
 
@@ -157,8 +157,36 @@ def main(part1, part2, part3):
         fig.savefig("plots/PowerConsumption.png")
 
 
+    if part4==True:
+        numOfArms = 30
+        numOfRuns = 100
+        maxSteps = 101
+        optimalArm = 15
+        period = 30
+        fraudArm = 20
+        experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="30Arm_15thOptArm_Period30_Steps101_Run100_01ScaleNoise_mod2Fraud_01AmpNoiseReward")
+        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0)
+        new_bound_conf = NewConfidenceBound(mab=mab, period=period, max_steps=maxSteps)
+        experiment_runner.runExperiments_part1(alg=new_bound_conf, alg_name=f'ECAD')
+        ucb_bound_conf = UpperConfidenceBound(c=2, mab=mab, max_steps=maxSteps)
+        experiment_runner.runExperiments_part1(alg=ucb_bound_conf, alg_name=f'UCB')
+        optimalArg = OptimalAlgorithm(optimalArm, maxSteps, mab=mab)
+        experiment_runner.runExperiments_part1(alg=optimalArg, alg_name=f'Optimal')
+        q1 = 1
+        greedy_optimistic_ini = Greedy(Q1=q1, mab=mab)
+        experiment_runner.runExperiments_part1(alg=greedy_optimistic_ini, alg_name=f'Greedy')
+        eps = 0.1
+        e_greedy = Egreedy(eps=eps, mab=mab)
+        experiment_runner.runExperiments_part1(alg=e_greedy, alg_name=f"$\epsilon$-Greedy")
+        thompson_sampling = ThompsonSampling(maxSteps, mab)
+        experiment_runner.runExperiments_part1(alg=thompson_sampling, alg_name=f'Thompson Sampling')
+
+        experiment_runner.plot_part1()
+        experiment_runner.plotInstantaneousRegret()
+        experiment_runner.plotCumulativeRegret()
+
         
 
             
 
-main(part1=False, part2=False, part3=True)
+main(part1=False, part2=True, part3=False)
