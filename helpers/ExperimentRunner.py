@@ -183,6 +183,8 @@ class ExperimentRunner:
             os.makedirs(directory)
         plt.savefig("plots/" + self.figSaveDir + "/TotalReward.png", dpi=300)
 
+
+
     
     def plotRegretFraud(self, numFraud):
         fig, ax = plt.subplots(

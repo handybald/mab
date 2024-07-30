@@ -80,6 +80,9 @@ def main(part1, part2, part3, part4):
         experiment_runner.plotRegretFraud(30)
     
     if part3 == True:
+        #TODO: fix here, CAD will take the reward at the air at any time t
+        #TODO: ecad will take its selections
+        #TODO: plot the power consumption by mapping the reward to 1,0,-1 and convert them to the power consumptions
         numOfArms = 30
         numOfRuns = 1000
         maxSteps = 101
@@ -117,17 +120,18 @@ def main(part1, part2, part3, part4):
         fig.colorbar(cax)
         plt.show()
 
-        worConsumption = 0.091460267
+        noAcConsumption = 0.0000032
+        cadActivity = 0.00203794
+        rxActivity = 44.6
 
         cumWorConsumptionForECAD = np.zeros(maxSteps)
         cumWorConsumptionForCAD = np.zeros(maxSteps)
 
         for i in range(maxSteps):
             if armRewards[optimalArm,i] == 1:
-                cumWorConsumptionForECAD[i] = worConsumption
-                cumWorConsumptionForCAD[i] = worConsumption
-            if armRewards[fraudArm,i] == -1:
-                cumWorConsumptionForCAD[i] = worConsumption
+                cumWorConsumptionForECAD[i] = 
+            elif armRewards[fraudArm,i] == -1:
+                cumWorConsumptionForCAD[i] = rxActivity
             
         for i in range(1, maxSteps):
             cumWorConsumptionForECAD[i] = cumWorConsumptionForECAD[i-1] + cumWorConsumptionForECAD[i]
@@ -186,5 +190,15 @@ def main(part1, part2, part3, part4):
         
         experiment_runner.plotIncreasingNumOfArmsReward(numOfArms[-1], 2*len(numOfArms), numOfArms)
         experiment_runner.plotIncreasingNumOfArmsRegret(numOfArms[-1], 2*len(numOfArms), numOfArms)
+    
+    if part5==True:
+        numOfArms = 100
+        numOfRuns = 1000
+        maxSteps = 1001
+        optimalArms = np.arange(1, 101, 1)
+        period = 100
+        experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="IncreasingPeriod")
+
+        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0, numOfTrueArms=0)
         
 main(part1=True, part2=True, part3=True, part4=True)
