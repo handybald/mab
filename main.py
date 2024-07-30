@@ -8,6 +8,7 @@ from algorithms.ThompsonSampling import ThompsonSampling
 from classes.MultiArmBandit import MultiArmBandit
 from helpers.ExperimentRunner import ExperimentRunner
 import numpy as np
+import random
 import matplotlib.pyplot as plt
 import matplotlib.colors
 
@@ -19,13 +20,13 @@ def main(part1, part2, part3, part4):
     #mab.plotReward(numOfArms,fraudArm,optimalArm,maxSteps)
     if part1 == True:
         numOfArms = 30
-        numOfRuns = 100
+        numOfRuns = 1000
         maxSteps = 101
         optimalArm = 15
         period = 30
         fraudArm = 20
         experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="30Arm_15thOptArm_Period30_Steps101_Run100_01ScaleNoise_mod2Fraud_01AmpNoiseReward")
-        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0)
+        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0, numOfTrueArms=0)
         new_bound_conf = NewConfidenceBound(mab=mab, period=period, max_steps=maxSteps)
         experiment_runner.runExperiments_part1(alg=new_bound_conf, alg_name=f'ECAD')
         ucb_bound_conf = UpperConfidenceBound(c=2, mab=mab, max_steps=maxSteps)
@@ -49,18 +50,18 @@ def main(part1, part2, part3, part4):
 
     if part2 == True:
         numOfArms = 30
-        numOfRuns = 100
+        numOfRuns = 1000
         maxSteps = 101
         optimalArm = 15
         period = 30
         experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="Fraud")
-        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0)
+        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0, numOfTrueArms=0)
 
         optimalArg = OptimalAlgorithm(optimalArm, maxSteps, mab=mab)
         experiment_runner.runExperiments_part1(alg=optimalArg, alg_name=f'Optimal')
         fraudNum = np.arange(1, 31, 1)
         for fraud in fraudNum: 
-            mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=fraud)
+            mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=fraud, numOfTrueArms=0)
             new_bound_conf = NewConfidenceBound(mab=mab, period=period, max_steps=maxSteps)
             experiment_runner.runExperiments_part1(alg=new_bound_conf, alg_name=f'ECAD{fraud}')
             ucb_bound_conf = UpperConfidenceBound(c=2, mab=mab, max_steps=maxSteps)
@@ -80,14 +81,14 @@ def main(part1, part2, part3, part4):
     
     if part3 == True:
         numOfArms = 30
-        numOfRuns = 100
+        numOfRuns = 1000
         maxSteps = 101
         optimalArm = 15
         period = 30
         fraudArm = 20
         armRewards = np.zeros((numOfArms, maxSteps))
         cadTimes = np.arange(1, maxSteps+1, 1)
-        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0, noNoise=True)
+        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0, noNoise=True, numOfTrueArms=0)
         for i in range(numOfArms):
             reward = []
             for t in range(maxSteps):
@@ -159,34 +160,31 @@ def main(part1, part2, part3, part4):
 
     if part4==True:
         numOfArms = 30
-        numOfRuns = 100
+        numOfRuns = 10000
         maxSteps = 101
         optimalArm = 15
         period = 30
-        fraudArm = 20
-        experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="30Arm_15thOptArm_Period30_Steps101_Run100_01ScaleNoise_mod2Fraud_01AmpNoiseReward")
-        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0)
-        new_bound_conf = NewConfidenceBound(mab=mab, period=period, max_steps=maxSteps)
-        experiment_runner.runExperiments_part1(alg=new_bound_conf, alg_name=f'ECAD')
-        ucb_bound_conf = UpperConfidenceBound(c=2, mab=mab, max_steps=maxSteps)
-        experiment_runner.runExperiments_part1(alg=ucb_bound_conf, alg_name=f'UCB')
+
+        numOfArms = [10, 20, 30, 40, 50, 60, 70, 90, 100]
+        periods =   [10, 20, 30, 40, 50, 60, 70, 90, 100]
+        optimalArms = [random.randint(0, numOfArms[i]-1) for i in range(len(numOfArms))]
+
+        #create experiment runner
+        experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="IncreasingNumOfArms")
+
+        mab = MultiArmBandit(30, period=30, optimalArm=optimalArm, numOfFrauds=0, numOfTrueArms=0)
         optimalArg = OptimalAlgorithm(optimalArm, maxSteps, mab=mab)
         experiment_runner.runExperiments_part1(alg=optimalArg, alg_name=f'Optimal')
-        q1 = 1
-        greedy_optimistic_ini = Greedy(Q1=q1, mab=mab)
-        experiment_runner.runExperiments_part1(alg=greedy_optimistic_ini, alg_name=f'Greedy')
-        eps = 0.1
-        e_greedy = Egreedy(eps=eps, mab=mab)
-        experiment_runner.runExperiments_part1(alg=e_greedy, alg_name=f"$\epsilon$-Greedy")
-        thompson_sampling = ThompsonSampling(maxSteps, mab)
-        experiment_runner.runExperiments_part1(alg=thompson_sampling, alg_name=f'Thompson Sampling')
 
-        experiment_runner.plot_part1()
-        experiment_runner.plotInstantaneousRegret()
-        experiment_runner.plotCumulativeRegret()
-
+        for i in range(len(numOfArms)):
+            mab = MultiArmBandit(numOfArms[i], period=periods[i], optimalArm=optimalArms[i], numOfFrauds=0, numOfTrueArms=0)
+            new_bound_conf = NewConfidenceBound(mab=mab, period=periods[i], max_steps=maxSteps)
+            experiment_runner.runExperiments_part1(alg=new_bound_conf, alg_name=f'ECAD{numOfArms[i]}')
+            eps = 0.1
+            e_greedy = Egreedy(eps=eps, mab=mab)
+            experiment_runner.runExperiments_part1(alg=e_greedy, alg_name=f'$\epsilon$-Greedy{numOfArms[i]}')
         
-
-            
-
-main(part1=False, part2=True, part3=False)
+        experiment_runner.plotIncreasingNumOfArmsReward(numOfArms[-1], 2*len(numOfArms), numOfArms)
+        experiment_runner.plotIncreasingNumOfArmsRegret(numOfArms[-1], 2*len(numOfArms), numOfArms)
+        
+main(part1=True, part2=True, part3=True, part4=True)

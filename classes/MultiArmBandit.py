@@ -7,7 +7,7 @@ import matplotlib.colors
 
 
 class MultiArmBandit:
-    def __init__(self, num_arms, period, optimalArm, numOfFrauds = 0, noNoise=False, debug=False):
+    def __init__(self, num_arms, period, optimalArm, numOfFrauds = 0, numOfTrueArms = 0, noNoise=False, debug=False):
         self.num_arms = num_arms
         self.possible_actions = np.zeros(num_arms)
         self.period = period
@@ -15,6 +15,7 @@ class MultiArmBandit:
         self.optimalArm = optimalArm
         self.numOfFrauds = numOfFrauds
         self.noNoise = noNoise
+        self.numOfTrueArms = numOfTrueArms
 
         # Ini mean values
         for i in np.arange(num_arms):
@@ -49,7 +50,7 @@ class MultiArmBandit:
                 r_t = 0.1 * np.sin((2 * np.pi / T) * t + phase_shift)
                 r_t = -abs(r_t)
                 r_t += noise
-        else:
+        elif self.numOfTrueArms == 0 and self.numOfFrauds == 0:
             if (index_arm == self.optimalArm) and (optimalAlgPulling):
                 r_t = amplitude * np.sin((2 * np.pi / T) * t + phase_shift)
                 r_t = abs(r_t)
@@ -58,9 +59,19 @@ class MultiArmBandit:
                 r_t = abs(r_t)
                 if not self.noNoise:
                     r_t += noise
-            elif index_arm == 20:
-                r_t = amplitude * np.sin((2 * np.pi / T) * t + phase_shift)
+            else:
+                r_t = 0.1 * np.sin((2 * np.pi / T) * t + phase_shift)
                 r_t = -abs(r_t)
+                if not self.noNoise:
+                    r_t += noise
+        elif self.numOfTrueArms != 0:
+            trueArms = np.arange(0,self.numOfTrueArms,1)
+            if (index_arm in trueArms) and (optimalAlgPulling):
+                r_t = amplitude * np.sin((2 * np.pi / T) * t + phase_shift)
+                r_t = abs(r_t)
+            elif (index_arm in trueArms):
+                r_t = amplitude * np.sin((2 * np.pi / T) * t + phase_shift)
+                r_t = abs(r_t)
                 if not self.noNoise:
                     r_t += noise
             else:

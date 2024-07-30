@@ -244,39 +244,159 @@ class ExperimentRunner:
         if not os.path.exists(directory):
             os.makedirs(directory)
         plt.savefig("plots/" + self.figSaveDir + "/TotalRegret.png", dpi=300)
+    
+    def plotIncreasingNumOfArmsReward(self, totalArms, algs, arms):
+        fig, ax = plt.subplots()
+        #remove optimal from the list
+        dropped = self.all_results_part1.drop(self.optimalAlgName)
+        colors = ["#EBA33B", "#507A99", "#AB8855", "#3BA1EB", "#AB8855"]
         
-            
+        # find the cumsum of each reward array
+        cumsumArrayNCB = []
+        cumsumArrayUCB = []
+        cumsumArrayGreedy = []
+        cumsumArrayEpsGreedy = []
+        cumsumArrayTS = []
+        findECAD = False
+        findUCB = False
+        findGreedy = False
+        findEpsGreedy = False
+        findTS = False
 
-    def runExperiments_part2(self, algs, exp_range, max_steps=1000,  alg_name=""):
-        self.max_steps = max_steps
-        results_list = []
-        all_mean_value_per_alg = []
-        for alg_impl in algs:
-            results_t, total_results = alg_impl.run(max_steps)
-            mean_per_alg = results_t.mean(axis=0)
-            all_mean_value_per_alg.append(mean_per_alg)
-        all_mean_value_per_alg_df = pd.DataFrame(all_mean_value_per_alg)
-        all_mean_value_per_alg_df.reset_index(
-            inplace=True, drop=True)
-        all_mean_value_per_alg_df = all_mean_value_per_alg_df.T
-        all_mean_value_per_alg_df.columns = [exp_range]
-        return all_mean_value_per_alg_df
+        for i in range(algs):
+            if dropped.index[i].find("ECAD") != -1:
+                findECAD = True
+                cumsumArrayNCB.append(dropped.iloc[i].sum())
+            elif dropped.index[i].find("UCB") != -1:
+                findUCB = True
+                cumsumArrayUCB.append(dropped.iloc[i].sum())
+            elif dropped.index[i].find("QGreedy") != -1:
+                findGreedy = True
+                cumsumArrayGreedy.append(dropped.iloc[i].sum())
+            elif dropped.index[i].find(f"$\epsilon$-Greedy") != -1:
+                findEpsGreedy = True
+                cumsumArrayEpsGreedy.append(dropped.iloc[i].sum())
+            elif dropped.index[i].find("TS") != -1:
+                findTS = True
+                cumsumArrayTS.append(dropped.iloc[i].sum())
+        
+        if findECAD:
+            ax.plot(arms, cumsumArrayNCB, label="ECAD",
+                color = colors[0], linestyle="-", linewidth=2)
+            ax.text(totalArms, cumsumArrayNCB[-1] - 0.01, "ECAD",
+                color=colors[0], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        if findUCB:
+            ax.plot(arms, cumsumArrayUCB, label="UCB",
+                color = colors[1], linestyle="-", linewidth=2)
+            ax.text(totalArms, cumsumArrayUCB[-1] * 1.01, "UCB",
+                color=colors[1], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        if findGreedy:
+            ax.plot(arms, cumsumArrayGreedy, label="Greedy",
+                color = colors[2], linestyle="-", linewidth=2)
+            ax.text(totalArms, cumsumArrayGreedy[-1] * 1.01, "Greedy",
+                color=colors[2], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        if findEpsGreedy:
+            ax.plot(arms, cumsumArrayEpsGreedy, label="$\epsilon$-Greedy",
+                color = colors[3], linestyle="-", linewidth=2)
+            ax.text(totalArms, cumsumArrayEpsGreedy[-1] * 1.01, "$\epsilon$-Greedy",
+                color=colors[3], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        if findTS:
+            ax.plot(arms, cumsumArrayTS, label="TS",
+                color = colors[4], linestyle="-", linewidth=2)
+            ax.text(totalArms, cumsumArrayTS[-1] * 1.01, "TS",
+                color=colors[4], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        
+        ax.spines["right"].set_visible(False)
+        ax.spines["left"].set_visible(False)
+        ax.spines["top"].set_visible(False)
+        ax.yaxis.set_ticks_position("left")
+        ax.xaxis.set_ticks_position("bottom")
+        ax.spines["bottom"].set_bounds(0,totalArms)
+        ax.set_ylabel(f'Total Reward over {self.num_runs} runs')
+        ax.set_xlabel(f'Number of End Devices')
+        fig.tight_layout()
+        #create the directory if it does not exist
+        directory = "plots/" + self.figSaveDir
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        plt.savefig("plots/" + self.figSaveDir + "/TotalReward.png", dpi=300)        
+        
+    
+    def plotIncreasingNumOfArmsRegret(self, totalArms, algs, arms):
+        fig, ax = plt.subplots()
+        #remove optimal from the list
+        colors = ["#EBA33B", "#507A99", "#AB8855", "#3BA1EB", "#AB8855"]
+        
+        # find the cumsum of each reward array
+        cumsumArrayNCB = []
+        cumsumArrayUCB = []
+        cumsumArrayGreedy = []
+        cumsumArrayEpsGreedy = []
+        cumsumArrayTS = []
+        findECAD = False
+        findUCB = False
+        findGreedy = False
+        findEpsGreedy = False
+        findTS = False
 
-    def plot_part2(self, df1, df2, df3, df4):
-        plt.plot(list(
-            df1.columns.get_level_values(0)), df1.values.flatten(), label="e-greedy")
-        plt.plot(list(
-            df2.columns.get_level_values(0)), df2.values.flatten(), label="greedy")
-        plt.plot(list(
-            df3.columns.get_level_values(0)), df3.values.flatten(), label="ucb")
-        plt.plot(list(
-            df4.columns.get_level_values(0)), df4.values.flatten(), label="ECAD")
-        ax = plt.gca()
-        ax.set_title(
-            'Summary of Results for Multi-Armed Bandit with different algorithms')
-        ax.set_ylabel(f'Average reward over {self.max_steps} steps')
-        ax.set_xlabel(
-            f'Different Hyperparameters - (Eps-greedy : eps, Greedy : Q0, ucb: c) ')
-        plt.legend()
-        ax.set_xscale('log')
-        plt.show()
+        optSum = self.all_results_part1.loc[self.optimalAlgName].sum()
+
+        dropped = self.all_results_part1.drop(self.optimalAlgName)
+
+        for i in range(algs):
+            if dropped.index[i].find("ECAD") != -1:
+                findECAD = True
+                cumsumArrayNCB.append(abs(optSum - dropped.iloc[i].sum()))
+            elif dropped.index[i].find("UCB") != -1:
+                findUCB = True
+                cumsumArrayUCB.append(abs(optSum - dropped.iloc[i].sum()))
+            elif dropped.index[i].find("QGreedy") != -1:
+                findGreedy = True
+                cumsumArrayGreedy.append(abs(optSum - dropped.iloc[i].sum()))
+            elif dropped.index[i].find(f"$\epsilon$-Greedy") != -1:
+                findEpsGreedy = True
+                cumsumArrayEpsGreedy.append(abs(optSum - dropped.iloc[i].sum()))
+            elif dropped.index[i].find("TS") != -1:
+                findTS = True
+                cumsumArrayTS.append(abs(optSum - dropped.iloc[i].sum()))
+        
+        if findECAD:
+            ax.plot(arms, cumsumArrayNCB, label="ECAD",
+                color = colors[0], linestyle="-", linewidth=2)
+            ax.text(totalArms, cumsumArrayNCB[-1] - 0.01, "ECAD",
+                color=colors[0], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        if findUCB:
+            ax.plot(arms, cumsumArrayUCB, label="UCB",
+                color = colors[1], linestyle="-", linewidth=2)
+            ax.text(totalArms, cumsumArrayUCB[-1] * 1.01, "UCB",
+                color=colors[1], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        if findGreedy:
+            ax.plot(arms, cumsumArrayGreedy, label="Greedy",
+                color = colors[2], linestyle="-", linewidth=2)
+            ax.text(totalArms, cumsumArrayGreedy[-1] * 1.01, "Greedy",
+                color=colors[2], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        if findEpsGreedy:
+            ax.plot(arms, cumsumArrayEpsGreedy, label="$\epsilon$-Greedy",
+                color = colors[3], linestyle="-", linewidth=2)
+            ax.text(totalArms, cumsumArrayEpsGreedy[-1] * 1.01, "$\epsilon$-Greedy",
+                color=colors[3], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        if findTS:
+            ax.plot(arms, cumsumArrayTS, label="TS",
+                color = colors[4], linestyle="-", linewidth=2)
+            ax.text(totalArms, cumsumArrayTS[-1] * 1.01, "TS",
+                color=colors[4], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        
+        ax.spines["right"].set_visible(False)
+        ax.spines["left"].set_visible(False)
+        ax.spines["top"].set_visible(False)
+        ax.yaxis.set_ticks_position("left")
+        ax.xaxis.set_ticks_position("bottom")
+        ax.spines["bottom"].set_bounds(0,totalArms)
+        ax.set_ylabel(f'Total Regret over {self.num_runs} runs')
+        ax.set_xlabel(f'Number of End Devices')
+        fig.tight_layout()
+        #create the directory if it does not exist
+        directory = "plots/" + self.figSaveDir
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        plt.savefig("plots/" + self.figSaveDir + "/TotalRegret.png", dpi=300)
