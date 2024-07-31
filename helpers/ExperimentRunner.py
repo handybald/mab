@@ -29,15 +29,6 @@ class ExperimentRunner:
         mean_per_timestep = mean_per_timestep.set_index('alg_name')
         self.all_results_part1 = pd.concat(
             [self.all_results_part1, pd.DataFrame(mean_per_timestep)], axis=0)
-        
-    
-    def compareWithCADandPlot(self):
-        cadScanTimes = np.arange(1, self.max_steps, 1)
-        
-
-        
-
-    
 
     def plot_part1(self):
         fig, ax = plt.subplots(

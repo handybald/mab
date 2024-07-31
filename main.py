@@ -85,69 +85,109 @@ def main(part1, part2, part3, part4):
         #TODO: plot the power consumption by mapping the reward to 1,0,-1 and convert them to the power consumptions
         numOfArms = 30
         numOfRuns = 1000
-        maxSteps = 101
+        maxSteps = 301
         optimalArm = 15
-        period = 30
+        period = 20
         fraudArm = 20
         armRewards = np.zeros((numOfArms, maxSteps))
         cadTimes = np.arange(1, maxSteps+1, 1)
-        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0, noNoise=True, numOfTrueArms=0)
-        for i in range(numOfArms):
-            reward = []
-            for t in range(maxSteps):
-                reward.append(mab.pull_arm(i, t))
-            armRewards[i,:] = np.array(reward)
-        
-        # set the armRewards array element to 0 if the reward is bigger than -0.5 and smaller than 0.5
-        for i in range(numOfArms):
-            for t in range(maxSteps):
-                if armRewards[i,t] > -0.99 and armRewards[i,t] < 0.99:
-                    armRewards[i,t] = 0
-                elif armRewards[i,t] > 0.99:
-                    armRewards[i,t] = 1
-                else:
-                    armRewards[i,t] = -1
+        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=1, noNoise=True, numOfTrueArms=0, times=maxSteps)
+        #mab.plotReward(numOfArms,fraudArm,optimalArm,maxSteps)
+        experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="PowerConsumption")
+        ECADConsumption = []
+        CADConsumption = []
+        ncb = NewConfidenceBound(mab=mab, period=period, max_steps=maxSteps)
+        experiment_runner.runExperiments_part1(alg=ncb, alg_name=f'ECAD')
+        resECAD = experiment_runner.all_results_part1.loc['ECAD']
+        resECAD = np.array(resECAD)
+        CADConsumption = np.array(mab.getFlatReward())
 
-                if t % 2 == 0:
-                    armRewards[i,t] = 0
+        for i in range(len(CADConsumption)):
+            if CADConsumption[i] > 0.99:
+                CADConsumption[i] = 1
+            if CADConsumption[i] < -0.99:
+                CADConsumption[i] = -1
+
+        for i in range(len(resECAD)):
+            resECAD[i] = min([1, -1, 0], key=lambda x: abs(resECAD[i] - x))
+
+        for i in range(len(resECAD)):
+            if resECAD[i] > 0.99:
+                resECAD[i] = 1
         
-        # plot the arm rewards
+        reduced_CADConsumption = []
+        last_value = None
+        for value in CADConsumption:
+            if value == -1 and last_value == -1:
+                continue
+            reduced_CADConsumption.append(value)
+            last_value = value
+
+        CADConsumption = np.array(reduced_CADConsumption)
+
+        reduced_resECAD = []
+        last_value = None
+        for value in resECAD:
+            if value == 1 and last_value == 1:
+                reduced_resECAD.append(0)
+                continue
+            reduced_resECAD.append(value)
+            last_value = value
+
+        resECAD = np.array(reduced_resECAD)
+
+        for i in range(len(CADConsumption)):
+            if CADConsumption[i] == 1:
+                # Find the closest index in resECAD that is 1
+                closest_index = None
+                min_distance = float('inf')
+                for j in range(len(resECAD)):
+                    if resECAD[j] == 1 and abs(i - j) < min_distance:
+                        closest_index = j
+                        min_distance = abs(i - j)
+                
+                if closest_index is not None:
+                    # Set the value at the closest index to 1 and the previous index to 0
+                    CADConsumption[closest_index] = 1
+                    if closest_index > 0:
+                        CADConsumption[i] = 0
+
+        
+        for i in range(len(CADConsumption)):
+            if CADConsumption[i] == 1:
+                CADConsumption[i] = 1 * (4.6 + 40 + 0.03794)
+            elif CADConsumption[i] == -1:
+                CADConsumption[i] = 1 * (4.6 + 40 + 0.03794)
+            else:
+                CADConsumption[i] = 0 + 0.002 + 0.0012 + 0.03794
+        for i in range(len(resECAD)):
+            if resECAD[i] == 1:
+                ECADConsumption.append(1 * (4.6 + 40 + 0.03794))
+            elif resECAD[i] == -1:
+                ECADConsumption.append(1 * (4.6 + 40 + 0.03794))
+            else:
+                ECADConsumption.append(0 + 0.002 + 0.0012 + 0.03794)
+
         fig, ax = plt.subplots()
-        ax.set_title("Arm Rewards")
-        ax.set_xlabel("Time")
-        ax.set_ylabel("Arm")
-        cax = ax.matshow(armRewards, cmap='coolwarm', aspect='auto')
-        fig.colorbar(cax)
+        plt.plot(ECADConsumption, label='ECAD')
+        plt.plot(CADConsumption, label='CAD')
         plt.show()
 
-        noAcConsumption = 0.0000032
-        cadActivity = 0.00203794
-        rxActivity = 44.6
 
-        cumWorConsumptionForECAD = np.zeros(maxSteps)
-        cumWorConsumptionForCAD = np.zeros(maxSteps)
+        ECADConsumption = np.cumsum(ECADConsumption)
+        CADConsumption = np.cumsum(CADConsumption)
 
-        for i in range(maxSteps):
-            if armRewards[optimalArm,i] == 1:
-                cumWorConsumptionForECAD[i] = 
-            elif armRewards[fraudArm,i] == -1:
-                cumWorConsumptionForCAD[i] = rxActivity
-            
-        for i in range(1, maxSteps):
-            cumWorConsumptionForECAD[i] = cumWorConsumptionForECAD[i-1] + cumWorConsumptionForECAD[i]
-            cumWorConsumptionForCAD[i] = cumWorConsumptionForCAD[i-1] + cumWorConsumptionForCAD[i]
-        
         colors = ["#EBA33B", "#507A99"]
         fig, ax = plt.subplots()
         ax.set_xlabel("Time")
         ax.set_ylabel("mAh")
-        ax.plot(cumWorConsumptionForECAD, label=f'ECAD',
+        ax.plot(ECADConsumption, label=f'ECAD',
             color = colors[0], linestyle="-", linewidth=2)
-        ax.text(maxSteps, cumWorConsumptionForECAD[-1] * 1.02, f'ECAD',
+        ax.text(maxSteps, ECADConsumption[-1] * 1.02, f'ECAD',
             color=colors[0], fontweight="normal", horizontalalignment="left", verticalalignment="center")
-        ax.plot(cumWorConsumptionForCAD, label=f'CAD',
+        ax.plot(CADConsumption, label=f'CAD',
             color = colors[1], linestyle="-", linewidth=2)
-        ax.text(maxSteps, cumWorConsumptionForCAD[-1] * 1.02, f'CAD',
+        ax.text(maxSteps, CADConsumption[-1] * 1.02, f'CAD',
             color=colors[1], fontweight="normal", horizontalalignment="left", verticalalignment="center")
         
         ax.spines["right"].set_visible(False)
@@ -190,15 +230,5 @@ def main(part1, part2, part3, part4):
         
         experiment_runner.plotIncreasingNumOfArmsReward(numOfArms[-1], 2*len(numOfArms), numOfArms)
         experiment_runner.plotIncreasingNumOfArmsRegret(numOfArms[-1], 2*len(numOfArms), numOfArms)
-    
-    if part5==True:
-        numOfArms = 100
-        numOfRuns = 1000
-        maxSteps = 1001
-        optimalArms = np.arange(1, 101, 1)
-        period = 100
-        experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="IncreasingPeriod")
-
-        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0, numOfTrueArms=0)
         
-main(part1=True, part2=True, part3=True, part4=True)
+main(part1=False, part2=False, part3=True, part4=False)

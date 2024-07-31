@@ -7,7 +7,7 @@ import matplotlib.colors
 
 
 class MultiArmBandit:
-    def __init__(self, num_arms, period, optimalArm, numOfFrauds = 0, numOfTrueArms = 0, noNoise=False, debug=False):
+    def __init__(self, num_arms, period, optimalArm, numOfFrauds = 0, numOfTrueArms = 0, noNoise=False, times = 0, debug=False):
         self.num_arms = num_arms
         self.possible_actions = np.zeros(num_arms)
         self.period = period
@@ -16,6 +16,7 @@ class MultiArmBandit:
         self.numOfFrauds = numOfFrauds
         self.noNoise = noNoise
         self.numOfTrueArms = numOfTrueArms
+        self.times = times
 
         # Ini mean values
         for i in np.arange(num_arms):
@@ -61,7 +62,7 @@ class MultiArmBandit:
                     r_t += noise
             else:
                 r_t = 0.1 * np.sin((2 * np.pi / T) * t + phase_shift)
-                r_t = -abs(r_t)
+                r_t = abs(r_t)
                 if not self.noNoise:
                     r_t += noise
         elif self.numOfTrueArms != 0:
@@ -79,11 +80,20 @@ class MultiArmBandit:
                 r_t = -abs(r_t)
                 if not self.noNoise:
                     r_t += noise
-
-        
-        
-
         return r_t
+
+    def getFlatReward(self):
+        reward = []
+        for t in range(self.times):
+            arm_rewards = [self.pull_arm(i, t) for i in range(self.num_arms)]
+            closest_reward = min(arm_rewards, key=lambda x: min(abs(x - 1), abs(x + 1), abs(x)))
+            reward.append(closest_reward)
+        
+        reward = np.array(reward)
+
+
+        return reward
+
 
     def print_actions(self):
         print(f'Possible actions - {self.possible_actions}')
