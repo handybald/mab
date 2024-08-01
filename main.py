@@ -11,7 +11,21 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 import matplotlib.colors
+from scipy.signal import find_peaks
 
+def find_peaks_custom(arr):
+    peaks = []
+    peak_indices = []
+
+    for i in range(1, len(arr) - 1):
+        if arr[i] > arr[i - 1] and arr[i] > arr[i + 1] and arr[i] > 0.85:
+            peaks.append(arr[i])
+            peak_indices.append(i)
+        elif arr[i] < arr[i - 1] and arr[i] < arr[i + 1] and arr[i] < -0.85:
+            peaks.append(arr[i])
+            peak_indices.append(i)    
+
+    return peaks, peak_indices
 
 def main(part1, part2, part3, part4):
     np.random.seed(42)
@@ -80,19 +94,12 @@ def main(part1, part2, part3, part4):
         experiment_runner.plotRegretFraud(30)
     
     if part3 == True:
-        #TODO: fix here, CAD will take the reward at the air at any time t
-        #TODO: ecad will take its selections
-        #TODO: plot the power consumption by mapping the reward to 1,0,-1 and convert them to the power consumptions
         numOfArms = 30
         numOfRuns = 1000
         maxSteps = 301
         optimalArm = 15
         period = 20
-        fraudArm = 20
-        armRewards = np.zeros((numOfArms, maxSteps))
-        cadTimes = np.arange(1, maxSteps+1, 1)
-        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=1, noNoise=True, numOfTrueArms=0, times=maxSteps)
-        #mab.plotReward(numOfArms,fraudArm,optimalArm,maxSteps)
+        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0, noNoise=False, numOfTrueArms=1, times=maxSteps)
         experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="PowerConsumption")
         ECADConsumption = []
         CADConsumption = []
@@ -102,57 +109,64 @@ def main(part1, part2, part3, part4):
         resECAD = np.array(resECAD)
         CADConsumption = np.array(mab.getFlatReward())
 
-        for i in range(len(CADConsumption)):
-            if CADConsumption[i] > 0.99:
-                CADConsumption[i] = 1
-            if CADConsumption[i] < -0.99:
-                CADConsumption[i] = -1
+        _, peak_indices = find_peaks_custom(resECAD)
+        _, cad_peak_indices = find_peaks_custom(CADConsumption)
 
-        for i in range(len(resECAD)):
-            resECAD[i] = min([1, -1, 0], key=lambda x: abs(resECAD[i] - x))
+        peakCAD = np.zeros(len(CADConsumption))
+        peakECAD = np.zeros(len(resECAD))
+        peakCAD[cad_peak_indices] = 1
+        peakECAD[peak_indices] = 1
 
-        for i in range(len(resECAD)):
-            if resECAD[i] > 0.99:
-                resECAD[i] = 1
+        # for i in range (len(resECAD)):
+        #     if i in peak_indices and resECAD[i] > 0.85:
+        #         resECAD[i] = 1
+        #     else:
+        #         resECAD[i] = 0        
         
-        reduced_CADConsumption = []
-        last_value = None
-        for value in CADConsumption:
-            if value == -1 and last_value == -1:
-                continue
-            reduced_CADConsumption.append(value)
-            last_value = value
-
-        CADConsumption = np.array(reduced_CADConsumption)
+        # for i in range (len(CADConsumption)):
+        #     if  CADConsumption[i] > 0.55:
+        #         CADConsumption[i] = 1
+        #     elif CADConsumption[i] < -0.55:
+        #         CADConsumption[i] = -1
+        #     else:
+        #         CADConsumption[i] = 0
+        
 
         reduced_resECAD = []
         last_value = None
-        for value in resECAD:
+        for value in peakECAD:
             if value == 1 and last_value == 1:
                 reduced_resECAD.append(0)
                 continue
             reduced_resECAD.append(value)
             last_value = value
 
-        resECAD = np.array(reduced_resECAD)
+        peakECAD = np.array(reduced_resECAD)
 
-        for i in range(len(CADConsumption)):
-            if CADConsumption[i] == 1:
+        for i in range(len(peakCAD)):
+            if peakCAD[i] == 1:
                 # Find the closest index in resECAD that is 1
                 closest_index = None
                 min_distance = float('inf')
                 for j in range(len(resECAD)):
-                    if resECAD[j] == 1 and abs(i - j) < min_distance:
+                    if peakECAD[j] == 1 and abs(i - j) < min_distance:
                         closest_index = j
                         min_distance = abs(i - j)
                 
                 if closest_index is not None:
                     # Set the value at the closest index to 1 and the previous index to 0
-                    CADConsumption[closest_index] = 1
+                    peakCAD[closest_index] = 1
                     if closest_index > 0:
-                        CADConsumption[i] = 0
+                        peakCAD[i] = 0
 
-        
+
+
+        ECADRx = np.insert(peakECAD, 0, 0)
+        CADRx = np.insert(peakCAD, 0, 0)
+
+        CADConsumption = peakCAD
+        ECADConsumption = peakECAD
+
         for i in range(len(CADConsumption)):
             if CADConsumption[i] == 1:
                 CADConsumption[i] = 1 * (4.6 + 40 + 0.03794)
@@ -161,45 +175,41 @@ def main(part1, part2, part3, part4):
             else:
                 CADConsumption[i] = 0 + 0.002 + 0.0012 + 0.03794
         for i in range(len(resECAD)):
-            if resECAD[i] == 1:
-                ECADConsumption.append(1 * (4.6 + 40 + 0.03794))
-            elif resECAD[i] == -1:
-                ECADConsumption.append(1 * (4.6 + 40 + 0.03794))
+            if ECADConsumption[i] == 1:
+                ECADConsumption[i] = 1 * (4.6 + 40 + 0.03794)
+            elif ECADConsumption[i] == -1:
+                ECADConsumption[i] = 1 * (4.6 + 40 + 0.03794)
             else:
-                ECADConsumption.append(0 + 0.002 + 0.0012 + 0.03794)
-
-        fig, ax = plt.subplots()
-        plt.plot(ECADConsumption, label='ECAD')
-        plt.plot(CADConsumption, label='CAD')
-        plt.show()
-
-
+                ECADConsumption[i] = 0 + 0.002 + 0.0012 + 0.03794
+        
         ECADConsumption = np.cumsum(ECADConsumption)
         CADConsumption = np.cumsum(CADConsumption)
+        ECADRx = np.cumsum(ECADRx)
+        CADRx = np.cumsum(CADRx)
+        colors_consumption = ["#EBA33B", "#507A99"]
+        colors_rx = ["#FF5733", "#33FF57"]
 
-        colors = ["#EBA33B", "#507A99"]
-        fig, ax = plt.subplots()
-        ax.set_xlabel("Time")
-        ax.set_ylabel("mAh")
-        ax.plot(ECADConsumption, label=f'ECAD',
-            color = colors[0], linestyle="-", linewidth=2)
-        ax.text(maxSteps, ECADConsumption[-1] * 1.02, f'ECAD',
-            color=colors[0], fontweight="normal", horizontalalignment="left", verticalalignment="center")
-        ax.plot(CADConsumption, label=f'CAD',
-            color = colors[1], linestyle="-", linewidth=2)
-        ax.text(maxSteps, CADConsumption[-1] * 1.02, f'CAD',
-            color=colors[1], fontweight="normal", horizontalalignment="left", verticalalignment="center")
-        
-        ax.spines["right"].set_visible(False)
-        ax.spines["left"].set_visible(False)
-        ax.spines["top"].set_visible(False)
-        ax.yaxis.set_ticks_position("left")
-        ax.xaxis.set_ticks_position("bottom")
-        ax.spines["bottom"].set_bounds(0,maxSteps-1)
-        ax.set_ylabel(f'Power Consumption (mAh)')
-        ax.set_xlabel(f'Steps')
+        fig, ax1 = plt.subplots()
+
+        # Plot ECADConsumption and CADConsumption on the primary y-axis
+        ax1.set_xlabel("Time")
+        ax1.set_ylabel("Power Consumption (mAh)", color=colors_consumption[0])
+        ax1.plot(ECADConsumption, label='ECAD', color=colors_consumption[0], linestyle="-", linewidth=4)
+        ax1.plot(CADConsumption, label='CAD', color=colors_consumption[1], linestyle="-", linewidth=4)
+        ax1.tick_params(axis='y', labelcolor=colors_consumption[0])
+
+        # Create a secondary y-axis
+        ax2 = ax1.twinx()
+        ax2.set_ylabel("Number of Packets Received", color=colors_rx[0])
+        ax2.plot(range(len(ECADRx)), ECADRx, label='ECAD', color=colors_rx[0], linestyle="dashed", linewidth=1)
+        ax2.plot(range(len(CADRx)), CADRx, label='CAD', color=colors_rx[1], linestyle="dashed", linewidth=1)
+        ax2.tick_params(axis='y', labelcolor=colors_rx[0])
+
+        # Add legends
         fig.tight_layout()
-        fig.savefig("plots/PowerConsumption.png")
+        fig.legend(loc="upper left", bbox_to_anchor=(0.12,0.98))
+
+        plt.savefig("plots/PowerConsumption.png")
 
 
     if part4==True:
