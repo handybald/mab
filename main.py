@@ -192,23 +192,40 @@ def main(part1, part2, part3, part4):
         fig, ax1 = plt.subplots()
 
         # Plot ECADConsumption and CADConsumption on the primary y-axis
-        ax1.set_xlabel("Time")
+        ax1.plot(ECADConsumption, label='ECAD',
+            color = colors_consumption[0], linestyle="-", linewidth=3)
+        ax1.text(maxSteps, ECADConsumption[-1] * 1.01, 'ECAD',
+            color=colors_consumption[0], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        ax1.plot(CADConsumption, label='CAD',
+            color = colors_consumption[1], linestyle="-", linewidth=3)
+        ax1.text(maxSteps, CADConsumption[-1] * 1.1, 'CAD',
+            color=colors_consumption[1], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        ax1.spines["right"].set_visible(False)
+        ax1.spines["left"].set_visible(False)
+        ax1.spines["top"].set_visible(False)
+        ax1.yaxis.set_ticks_position("left")
+        ax1.xaxis.set_ticks_position("bottom")
+        ax1.spines["bottom"].set_bounds(0, maxSteps)
+        ax1.set_xlabel("Time Slot")
         ax1.set_ylabel("Power Consumption (mAh)", color=colors_consumption[0])
-        ax1.plot(ECADConsumption, label='ECAD', color=colors_consumption[0], linestyle="-", linewidth=4)
-        ax1.plot(CADConsumption, label='CAD', color=colors_consumption[1], linestyle="-", linewidth=4)
         ax1.tick_params(axis='y', labelcolor=colors_consumption[0])
 
         # Create a secondary y-axis
         ax2 = ax1.twinx()
         ax2.set_ylabel("Number of Packets Received", color=colors_rx[0])
-        ax2.plot(range(len(ECADRx)), ECADRx, label='ECAD', color=colors_rx[0], linestyle="dashed", linewidth=1)
-        ax2.plot(range(len(CADRx)), CADRx, label='CAD', color=colors_rx[1], linestyle="dashed", linewidth=1)
+        ax2.plot(ECADRx, label='ECAD',
+            color = colors_rx[0], linestyle="--", linewidth=1)
+        ax2.plot(CADRx, label='CAD',
+            color = colors_rx[1], linestyle="--", linewidth=1)
+        ax2.spines["right"].set_visible(False)
+        ax2.spines["left"].set_visible(False)
+        ax2.spines["top"].set_visible(False)
+        ax2.yaxis.set_ticks_position("right")
         ax2.tick_params(axis='y', labelcolor=colors_rx[0])
 
         # Add legends
         fig.tight_layout()
-        fig.legend(loc="upper left", bbox_to_anchor=(0.12,0.98))
-
+        #plt.show()
         plt.savefig("plots/PowerConsumption.png")
 
 
