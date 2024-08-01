@@ -18,10 +18,10 @@ def find_peaks_custom(arr):
     peak_indices = []
 
     for i in range(1, len(arr) - 1):
-        if arr[i] > arr[i - 1] and arr[i] > arr[i + 1] and arr[i] > 0.85:
+        if arr[i] > arr[i - 1] and arr[i] > arr[i + 1] and arr[i] > 0.95:
             peaks.append(arr[i])
             peak_indices.append(i)
-        elif arr[i] < arr[i - 1] and arr[i] < arr[i + 1] and arr[i] < -0.85:
+        elif arr[i] < arr[i - 1] and arr[i] < arr[i + 1] and arr[i] < -0.95:
             peaks.append(arr[i])
             peak_indices.append(i)    
 
