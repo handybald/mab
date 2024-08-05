@@ -100,44 +100,46 @@ class MultiArmBandit:
 
     def plotReward(self, numOfArms, fraudArm, optimalArm, maxSteps):
             #plot the reward function at time t for each arm
-        fig, ax = plt.subplots()
+        # fig, ax = plt.subplots()
 
-        #create color palette for the arms, 30 arms, 30 colors, set the color for the optimal arm to orange and color of the arm 20 inverse of the optimal arm use pastel colors
-        colors = plt.cm.get_cmap('Pastel1', numOfArms)(range(numOfArms))
+        # #create color palette for the arms, 30 arms, 30 colors, set the color for the optimal arm to orange and color of the arm 20 inverse of the optimal arm use pastel colors
+        # colors = plt.cm.get_cmap('Pastel1', numOfArms)(range(numOfArms))
 
-        # Set the 15th index to orange
-        colors[optimalArm] = matplotlib.colors.to_rgba('orange')
+        # # Set the 15th index to orange
+        # colors[optimalArm] = matplotlib.colors.to_rgba('orange')
 
-        # Calculate the inverse of orange
-        orange_inverse = np.array(matplotlib.colors.to_rgba('orange'))
-        orange_inverse[:3] = 1.0 - orange_inverse[:3]  # Invert the RGB components, ignore the alpha
+        # # Calculate the inverse of orange
+        # orange_inverse = np.array(matplotlib.colors.to_rgba('orange'))
+        # orange_inverse[:3] = 1.0 - orange_inverse[:3]  # Invert the RGB components, ignore the alpha
 
-        # Set the 20th index to the inverse of orange
-        colors[fraudArm] = orange_inverse
+        # # Set the 20th index to the inverse of orange
+        # colors[fraudArm] = orange_inverse
 
-        for i in range(numOfArms):
-            reward = []
-            for t in range(maxSteps):
-                reward.append(self.pull_arm(i, t))
-            ax.plot(reward, label=f'Arm {i}',
-                color = colors[i], linestyle="-", linewidth=2)
-            if i == optimalArm :
-                ax.text(maxSteps, reward[-1] * 1.02, f'Optimal Arm',
-                        color=colors[i], fontweight="normal", horizontalalignment="left", verticalalignment="center")
-            if i == 20:
-                ax.text(maxSteps, (reward[-1] - 0.5) * 1.02, f'Fraud Arm',
-                        color=colors[i], fontweight="normal", horizontalalignment="left", verticalalignment="center")
-            if i == 21:
-                ax.text(maxSteps, (reward[-1]- 0.2) * 1.02, f'Zero Reward Arms',
-                        color=colors[i], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        # for i in range(numOfArms):
+        reward = []
+        for t in range(maxSteps):
+            reward.append(self.pull_arm(optimalArm, t, optimalAlgPulling=True))
+        #     ax.plot(reward, label=f'Arm {i}',
+        #         color = colors[i], linestyle="-", linewidth=2)
+        #     if i == optimalArm :
+        #         ax.text(maxSteps, reward[-1] * 1.02, f'Optimal Arm',
+        #                 color=colors[i], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        #     if i == 20:
+        #         ax.text(maxSteps, (reward[-1] - 0.5) * 1.02, f'Fraud Arm',
+        #                 color=colors[i], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        #     if i == 21:
+        #         ax.text(maxSteps, (reward[-1]- 0.2) * 1.02, f'Zero Reward Arms',
+        #                 color=colors[i], fontweight="normal", horizontalalignment="left", verticalalignment="center")
             
-        ax.spines["right"].set_visible(False)
-        ax.spines["left"].set_visible(False)
-        ax.spines["top"].set_visible(False)
-        ax.yaxis.set_ticks_position("left")
-        ax.xaxis.set_ticks_position("bottom")
-        ax.spines["bottom"].set_bounds(0,maxSteps-1)
-        ax.set_ylabel(f'Instantaneous Reward at each arm')
-        ax.set_xlabel(f'Steps')
-        fig.tight_layout()
-        plt.show()
+        # ax.spines["right"].set_visible(False)
+        # ax.spines["left"].set_visible(False)
+        # ax.spines["top"].set_visible(False)
+        # ax.yaxis.set_ticks_position("left")
+        # ax.xaxis.set_ticks_position("bottom")
+        # ax.spines["bottom"].set_bounds(0,maxSteps-1)
+        # ax.set_ylabel(f'Instantaneous Reward at each arm')
+        # ax.set_xlabel(f'Steps')
+        # fig.tight_layout()
+        # plt.show()
+
+        return reward
