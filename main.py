@@ -100,9 +100,6 @@ def main(part1, part2, part3, part4):
         experiment_runner.plotRegretFraud(30)
     
     if part3 == True:
-        #TODO: fix here, CAD will take the reward at the air at any time t
-        #TODO: ecad will take its selections
-        #TODO: plot the power consumption by mapping the reward to 1,0,-1 and convert them to the power consumptions
         numOfArms = 30
         numOfRuns = 1000
         maxSteps = 301
@@ -126,10 +123,6 @@ def main(part1, part2, part3, part4):
         resECAD = experiment_runner.all_results_part1.loc['ECAD']
         resECAD = np.array(resECAD)
         CADConsumption = np.array(mab.getFlatReward())
-        fig, ax = plt.subplots()
-        plt.plot(CADConsumption)
-        plt.plot(resECAD)
-        plt.show()
 
         for i in range(len(CADConsumption)):
             if CADConsumption[i] > 0.99:
@@ -140,44 +133,45 @@ def main(part1, part2, part3, part4):
         for i in range(len(resECAD)):
             resECAD[i] = min([1, -1, 0], key=lambda x: abs(resECAD[i] - x))
 
-        for i in range(len(resECAD)):
-            if resECAD[i] > 0.99:
-                resECAD[i] = 1
+        # for i in range (len(resECAD)):
+        #     if i in peak_indices and resECAD[i] > 0.85:
+        #         resECAD[i] = 1
+        #     else:
+        #         resECAD[i] = 0        
         
-        reduced_CADConsumption = []
-        last_value = None
-        for value in CADConsumption:
-            if value == -1 and last_value == -1:
-                continue
-            reduced_CADConsumption.append(value)
-            last_value = value
-
-        CADConsumption = np.array(reduced_CADConsumption)
+        # for i in range (len(CADConsumption)):
+        #     if  CADConsumption[i] > 0.55:
+        #         CADConsumption[i] = 1
+        #     elif CADConsumption[i] < -0.55:
+        #         CADConsumption[i] = -1
+        #     else:
+        #         CADConsumption[i] = 0
+        
 
         reduced_resECAD = []
         last_value = None
-        for value in resECAD:
+        for value in peakECAD:
             if value == 1 and last_value == 1:
                 reduced_resECAD.append(0)
                 continue
             reduced_resECAD.append(value)
             last_value = value
 
-        resECAD = np.array(reduced_resECAD)
+        peakECAD = np.array(reduced_resECAD)
 
-        for i in range(len(CADConsumption)):
-            if CADConsumption[i] == 1:
+        for i in range(len(peakCAD)):
+            if peakCAD[i] == 1:
                 # Find the closest index in resECAD that is 1
                 closest_index = None
                 min_distance = float('inf')
                 for j in range(len(resECAD)):
-                    if resECAD[j] == 1 and abs(i - j) < min_distance:
+                    if peakECAD[j] == 1 and abs(i - j) < min_distance:
                         closest_index = j
                         min_distance = abs(i - j)
                 
                 if closest_index is not None:
                     # Set the value at the closest index to 1 and the previous index to 0
-                    CADConsumption[closest_index] = 1
+                    peakCAD[closest_index] = 1
                     if closest_index > 0:
                         CADConsumption[i] = 0
         
