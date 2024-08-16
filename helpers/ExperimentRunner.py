@@ -104,7 +104,7 @@ class ExperimentRunner:
         ax.yaxis.set_ticks_position("left")
         ax.xaxis.set_ticks_position("bottom")
         ax.spines["bottom"].set_bounds(0,regret.shape[1])
-        ax.set_ylabel(f'Instantaneous Regret')
+        ax.set_ylabel(f'Cumulative Regret')
         ax.set_xlabel(f'Steps')
         fig.tight_layout()
         plt.savefig("plots/" + self.figSaveDir + "/CumulativeRegret.png", dpi=300)

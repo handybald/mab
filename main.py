@@ -40,7 +40,7 @@ def main(part1, part2, part3, part4):
         period = 30
         fraudArm = 20
         experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="30Arm_15thOptArm_Period30_Steps101_Run100_01ScaleNoise_mod2Fraud_01AmpNoiseReward")
-        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0, numOfTrueArms=0)
+        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=1, numOfTrueArms=0)
         new_bound_conf = NewConfidenceBound(mab=mab, period=period, max_steps=maxSteps)
         experiment_runner.runExperiments_part1(alg=new_bound_conf, alg_name=f'ECAD')
         ucb_bound_conf = UpperConfidenceBound(c=2, mab=mab, max_steps=maxSteps)
@@ -98,7 +98,7 @@ def main(part1, part2, part3, part4):
         numOfRuns = 1000
         maxSteps = 301
         optimalArm = 15
-        period = 20
+        period = 25
         mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0, noNoise=False, numOfTrueArms=1, times=maxSteps)
         experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="PowerConsumption")
         ECADConsumption = []
@@ -212,18 +212,19 @@ def main(part1, part2, part3, part4):
 
         # Create a secondary y-axis
         ax2 = ax1.twinx()
-        ax2.set_ylabel("Number of Packets Received", color=colors_rx[0])
+        ax2.set_ylabel("Number of Packets Received")
         ax2.plot(ECADRx, label='ECAD',
-            color = colors_rx[0], linestyle="--", linewidth=1)
+            color = colors_rx[0], linestyle="-", linewidth=1)
         ax2.plot(CADRx, label='CAD',
-            color = colors_rx[1], linestyle="--", linewidth=1)
+            color = colors_rx[1], linestyle="-", linewidth=1)
         ax2.spines["right"].set_visible(False)
         ax2.spines["left"].set_visible(False)
         ax2.spines["top"].set_visible(False)
-        ax2.yaxis.set_ticks_position("right")
-        ax2.tick_params(axis='y', labelcolor=colors_rx[0])
+        ax2.yaxis.set_ticks_position("left")
+        ax2.xaxis.set_ticks_position("bottom")
+        ax2.spines["bottom"].set_bounds(0, maxSteps)
+        ax1.set_xlabel("Time Slot")
 
-        # Add legends
         fig.tight_layout()
         #plt.show()
         plt.savefig("plots/PowerConsumption.png")
@@ -231,7 +232,7 @@ def main(part1, part2, part3, part4):
 
     if part4==True:
         numOfArms = 30
-        numOfRuns = 10000
+        numOfRuns = 1000
         maxSteps = 101
         optimalArm = 15
         period = 30
@@ -258,4 +259,4 @@ def main(part1, part2, part3, part4):
         experiment_runner.plotIncreasingNumOfArmsReward(numOfArms[-1], 2*len(numOfArms), numOfArms)
         experiment_runner.plotIncreasingNumOfArmsRegret(numOfArms[-1], 2*len(numOfArms), numOfArms)
         
-main(part1=False, part2=False, part3=True, part4=False)
+main(part1=True, part2=True, part3=True, part4=True)
