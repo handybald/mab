@@ -46,7 +46,7 @@ def main(part1, part2, part3, part4):
         period = 30
         fraudArm = 20
         experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="30Arm_15thOptArm_Period30_Steps101_Run100_01ScaleNoise_mod2Fraud_01AmpNoiseReward")
-        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0, numOfTrueArms=0)
+        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=1, numOfTrueArms=0)
         new_bound_conf = NewConfidenceBound(mab=mab, period=period, max_steps=maxSteps)
         experiment_runner.runExperiments_part1(alg=new_bound_conf, alg_name=f'ECAD')
         ucb_bound_conf = UpperConfidenceBound(c=2, mab=mab, max_steps=maxSteps)
@@ -104,17 +104,8 @@ def main(part1, part2, part3, part4):
         numOfRuns = 1000
         maxSteps = 301
         optimalArm = 15
-        period = 20
-        fraudArm = 20
-        armRewards = np.zeros((numOfArms, maxSteps))
-        cadTimes = np.arange(1, maxSteps+1, 1)
-        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0, noNoise=False, numOfTrueArms=0, times=maxSteps)
-        tx = mab.plotReward(numOfArms,fraudArm,optimalArm,maxSteps)
-        peaks, _ = find_peaks(tx, height=0.95)
-
-        # Set spikes to 1 and remaining values to 0
-        txTimes = np.zeros(maxSteps)
-        txTimes[peaks] = 1  # Set spike values to 1
+        period = 25
+        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0, noNoise=False, numOfTrueArms=1, times=maxSteps)
         experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="PowerConsumption")
         ECADConsumption = []
         CADConsumption = []
@@ -218,65 +209,51 @@ def main(part1, part2, part3, part4):
                 ECADFailedReception.append(1)
                 ECADActivity.append(0)
             else:
-                ECADConsumption.append(0 + 0.002 + 0.0012 + 0.03794)
-                ECADReception.append(0)
-                SuccessfulECADReception.append(0)
-                ECADFailedReception.append(0)
-                ECADActivity.append(1)
+                ECADConsumption[i] = 0 + 0.002 + 0.0012 + 0.03794
+        
+        ECADConsumption = np.cumsum(ECADConsumption)
+        CADConsumption = np.cumsum(CADConsumption)
+        ECADRx = np.cumsum(ECADRx)
+        CADRx = np.cumsum(CADRx)
+        colors_consumption = ["#EBA33B", "#507A99"]
+        colors_rx = ["#FF5733", "#33FF57"]
 
-        # ECADConsumption = np.cumsum(ECADConsumption)
-        # CADConsumption = np.cumsum(CADConsumption)
+        fig, ax1 = plt.subplots()
 
-        # ECADReception = np.cumsum(ECADReception)
-        # CADReception = np.cumsum(CADReception)
-        SuccessfulCADReception = np.cumsum(SuccessfulCADReception)
-        SuccessfulECADReception = np.cumsum(SuccessfulECADReception)
-        # CADFailedReception = np.cumsum(CADFailedReception)
-        # ECADFailedReception = np.cumsum(ECADFailedReception)
-        # CADActivity = np.cumsum(CADActivity)
-        # ECADActivity = np.cumsum(ECADActivity)
-        # txTimes = np.cumsum(txTimes)
+        # Plot ECADConsumption and CADConsumption on the primary y-axis
+        ax1.plot(ECADConsumption, label='ECAD',
+            color = colors_consumption[0], linestyle="-", linewidth=3)
+        ax1.text(maxSteps, ECADConsumption[-1] * 1.01, 'ECAD',
+            color=colors_consumption[0], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        ax1.plot(CADConsumption, label='CAD',
+            color = colors_consumption[1], linestyle="-", linewidth=3)
+        ax1.text(maxSteps, CADConsumption[-1] * 1.1, 'CAD',
+            color=colors_consumption[1], fontweight="normal", horizontalalignment="left", verticalalignment="center")
+        ax1.spines["right"].set_visible(False)
+        ax1.spines["left"].set_visible(False)
+        ax1.spines["top"].set_visible(False)
+        ax1.yaxis.set_ticks_position("left")
+        ax1.xaxis.set_ticks_position("bottom")
+        ax1.spines["bottom"].set_bounds(0, maxSteps)
+        ax1.set_xlabel("Time Slot")
+        ax1.set_ylabel("Power Consumption (mAh)", color=colors_consumption[0])
+        ax1.tick_params(axis='y', labelcolor=colors_consumption[0])
 
+        # Create a secondary y-axis
+        ax2 = ax1.twinx()
+        ax2.set_ylabel("Number of Packets Received")
+        ax2.plot(ECADRx, label='ECAD',
+            color = colors_rx[0], linestyle="-", linewidth=1)
+        ax2.plot(CADRx, label='CAD',
+            color = colors_rx[1], linestyle="-", linewidth=1)
+        ax2.spines["right"].set_visible(False)
+        ax2.spines["left"].set_visible(False)
+        ax2.spines["top"].set_visible(False)
+        ax2.yaxis.set_ticks_position("left")
+        ax2.xaxis.set_ticks_position("bottom")
+        ax2.spines["bottom"].set_bounds(0, maxSteps)
+        ax1.set_xlabel("Time Slot")
 
-        colors = ["#EBA33B", "#D28D46", "#B97852", "#A0635E", "#874E6A",
-                  "#6E3976", "#553482", "#3C2E8E", "#23389A", "#0A43A6",
-                  "#3BA1EB"
-        ]
-        # fig, ax = plt.subplots()
-        # ax.set_xlabel("Time")
-        # ax.set_ylabel("mAh")
-        # ax.plot(ECADConsumption, label=f'ECAD',
-        #     color = colors[0], linestyle="-", linewidth=2)
-        # ax.text(maxSteps, ECADConsumption[-1] * 1.02, f'ECAD',
-        #     color=colors[0], fontweight="normal", horizontalalignment="left", verticalalignment="center")
-        # ax.plot(CADConsumption, label=f'CAD',
-        #     color = colors[1], linestyle="-", linewidth=2)
-        # ax.text(maxSteps, CADConsumption[-1] * 1.02, f'CAD',
-        #     color=colors[1], fontweight="normal", horizontalalignment="left", verticalalignment="center")
-
-        lineSize = [0.5, 0.5, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3]
-        fig, ax = plt.subplots()
-
-        # ax.eventplot(ECADConsumption, lineoffsets=0, linelengths=lineSize[0], color=colors[0], label='ECAD Power Consumption')
-        # ax.eventplot(CADConsumption, lineoffsets=1, linelengths=lineSize[1], color=colors[1], label='CAD Power Consumption')
-        # ax.plot(txTimes, color=colors[2], label='Transmission Times')
-        # ax.plot(CADReception, color=colors[3], label='CAD Reception')
-        # ax.plot(ECADReception, color=colors[4], label='ECAD Reception')
-        ax.plot(SuccessfulCADReception, color=colors[5], label='Successful CAD Reception')
-        ax.plot(SuccessfulECADReception, color=colors[6], label='Successful ECAD Reception')
-        # ax.plot(CADFailedReception, color=colors[7], label='CAD Failed Reception')
-        # ax.plot(ECADFailedReception, color=colors[8], label='ECAD Failed Reception')
-        # ax.plot(CADActivity, color=colors[9], label='CAD Activity')
-        # ax.plot(ECADActivity, color=colors[10], label='ECAD Activity')
-
-        ax.spines["right"].set_visible(False)
-        ax.spines["left"].set_visible(False)
-        ax.spines["top"].set_visible(False)
-        ax.yaxis.set_ticks_position("left")
-        ax.xaxis.set_ticks_position("bottom")
-        ax.spines["bottom"].set_bounds(0,maxSteps-1)
-        ax.set_ylabel(f'Power Consumption (mAh)')
-        ax.set_xlabel(f'Steps')
         fig.tight_layout()
         plt.show()
         #fig.savefig("plots/PowerConsumption.png")
@@ -284,7 +261,7 @@ def main(part1, part2, part3, part4):
 
     if part4==True:
         numOfArms = 30
-        numOfRuns = 10000
+        numOfRuns = 1000
         maxSteps = 101
         optimalArm = 15
         period = 30
@@ -311,4 +288,4 @@ def main(part1, part2, part3, part4):
         experiment_runner.plotIncreasingNumOfArmsReward(numOfArms[-1], 2*len(numOfArms), numOfArms)
         experiment_runner.plotIncreasingNumOfArmsRegret(numOfArms[-1], 2*len(numOfArms), numOfArms)
         
-main(part1=False, part2=False, part3=True, part4=False)
+main(part1=True, part2=True, part3=True, part4=True)
