@@ -67,7 +67,7 @@ def main(part1, part2, part3, part4):
         numOfRuns = 1000
         maxSteps = 101
         optimalArm = 15
-        period = 30
+        period = 25
         experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="Fraud")
         mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=0, numOfTrueArms=0)
 
@@ -259,4 +259,4 @@ def main(part1, part2, part3, part4):
         experiment_runner.plotIncreasingNumOfArmsReward(numOfArms[-1], 2*len(numOfArms), numOfArms)
         experiment_runner.plotIncreasingNumOfArmsRegret(numOfArms[-1], 2*len(numOfArms), numOfArms)
         
-main(part1=True, part2=True, part3=True, part4=True)
+main(part1=False, part2=True, part3=False, part4=False)

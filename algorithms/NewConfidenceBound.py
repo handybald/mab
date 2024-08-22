@@ -63,7 +63,7 @@ class NewConfidenceBound:
         rewards = np.array(self.observed_rewards[arm])
 
         # Normalize times by the period to bring them within a single period cycle
-        normalized_times = 2 * np.pi * (times % self.period) / self.period
+        normalized_times = 2 * np.pi * times / (self.period + self.phase_shifts[arm])
         # Calculate Fourier coefficients
         # a0: Average of the rewards (DC component)
         a0 = np.mean(rewards)
