@@ -40,7 +40,7 @@ def main(part1, part2, part3, part4):
         period = 30
         fraudArm = 20
         experiment_runner = ExperimentRunner(num_runs=numOfRuns, max_steps=maxSteps, optimalAlgName='Optimal', figSaveDir="30Arm_15thOptArm_Period30_Steps101_Run100_01ScaleNoise_mod2Fraud_01AmpNoiseReward")
-        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=1, numOfTrueArms=0)
+        mab = MultiArmBandit(numOfArms, period=period, optimalArm=optimalArm, numOfFrauds=1, numOfTrueArms=0, noNoise=True)
         new_bound_conf = NewConfidenceBound(mab=mab, period=period, max_steps=maxSteps)
         experiment_runner.runExperiments_part1(alg=new_bound_conf, alg_name=f'ECAD')
         ucb_bound_conf = UpperConfidenceBound(c=2, mab=mab, max_steps=maxSteps)
@@ -232,7 +232,7 @@ def main(part1, part2, part3, part4):
 
     if part4==True:
         numOfArms = 30
-        numOfRuns = 1000
+        numOfRuns = 10000
         maxSteps = 101
         optimalArm = 15
         period = 30
@@ -259,4 +259,4 @@ def main(part1, part2, part3, part4):
         experiment_runner.plotIncreasingNumOfArmsReward(numOfArms[-1], 2*len(numOfArms), numOfArms)
         experiment_runner.plotIncreasingNumOfArmsRegret(numOfArms[-1], 2*len(numOfArms), numOfArms)
         
-main(part1=False, part2=True, part3=False, part4=False)
+main(part1=True, part2=False, part3=False, part4=False)

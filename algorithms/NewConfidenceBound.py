@@ -39,7 +39,7 @@ class NewConfidenceBound:
         predicted_rewards = []
         for arm in range(self.num_arms):
             a0, a1, b1 = self.fourier_coefficients[arm]
-            predicted_reward = a0 + a1 * np.cos(2 * np.pi * t / self.period + self.phase_shifts[arm]) + b1 * np.sin(2 * np.pi * t / self.period + self.phase_shifts[arm])
+            predicted_reward = a0 + np.sqrt(a1**2 + b1**2) * np.cos(2 * np.pi * t / self.period + self.phase_shifts[arm])
             predicted_rewards.append(predicted_reward)
         arm_to_pull = np.argmax(predicted_rewards)
         return arm_to_pull
@@ -63,7 +63,7 @@ class NewConfidenceBound:
         rewards = np.array(self.observed_rewards[arm])
 
         # Normalize times by the period to bring them within a single period cycle
-        normalized_times = 2 * np.pi * times / (self.period + self.phase_shifts[arm])
+        normalized_times = 2 * np.pi * times / (self.period)
         # Calculate Fourier coefficients
         # a0: Average of the rewards (DC component)
         a0 = np.mean(rewards)

@@ -17,6 +17,7 @@ class MultiArmBandit:
         self.noNoise = noNoise
         self.numOfTrueArms = numOfTrueArms
         self.times = times
+        self.phase_shift = [np.random.uniform(0, 2 * np.pi) for _ in range(num_arms)]
 
         # Ini mean values
         for i in np.arange(num_arms):
@@ -24,9 +25,9 @@ class MultiArmBandit:
 
     def pull_arm(self, index_arm, t, optimalAlgPulling=False, debug=False):
         T = self.period
-        # Adjust phase shift and amplitude based on arm index for variability
-        phase_shift = index_arm * (2 * np.pi / self.num_arms)
-        amplitude = 1 #+ 0.5 * np.sin(2 * np.pi * index_arm / self.num_arms)
+        # Adjust phase shift randomly for each arm
+        
+        amplitude = 1
         noise = np.random.normal(loc=0, scale=0.1)  # Consider experimenting with the scale
 
         if self.numOfFrauds != 0:
@@ -37,46 +38,46 @@ class MultiArmBandit:
             if self.optimalArm in fraudArms:
                 fraudArms = np.delete(fraudArms, np.where(fraudArms == self.optimalArm))
             if (index_arm == self.optimalArm) and (optimalAlgPulling):
-                r_t = amplitude * np.sin(2 * np.pi * t / (T + phase_shift))
+                r_t = amplitude * np.cos(2 * np.pi * t / (T)  + self.phase_shift[index_arm])
                 r_t = abs(r_t)
             elif (index_arm == self.optimalArm):
-                r_t = amplitude * np.sin(2 * np.pi * t / (T + phase_shift))
+                r_t = amplitude * np.cos(2 * np.pi * t / (T)  + self.phase_shift[index_arm])
                 r_t = abs(r_t)
                 r_t += noise
             elif index_arm in fraudArms:
-                r_t = amplitude * np.sin(2 * np.pi * t / (T + phase_shift))
+                r_t = amplitude * np.cos(2 * np.pi * t / (T)  + self.phase_shift[index_arm])
                 r_t = -abs(r_t)
                 r_t += noise
             elif index_arm in zeroArms:
-                r_t = 0.1 * np.sin(2 * np.pi * t / (T + phase_shift))
+                r_t = 0.1 * np.cos(2 * np.pi * t / (T)  + self.phase_shift[index_arm])
                 r_t = -abs(r_t)
                 r_t += noise
         elif self.numOfTrueArms == 0 and self.numOfFrauds == 0:
             if (index_arm == self.optimalArm) and (optimalAlgPulling):
-                r_t = amplitude * np.sin(2 * np.pi * t / (T + phase_shift))
+                r_t = amplitude * np.cos(2 * np.pi * t / (T)  + self.phase_shift[index_arm])
                 r_t = abs(r_t)
             elif (index_arm == self.optimalArm):
-                r_t = amplitude * np.sin(2 * np.pi * t / (T + phase_shift))
+                r_t = amplitude * np.cos(2 * np.pi * t / (T)  + self.phase_shift[index_arm])
                 r_t = abs(r_t)
                 if not self.noNoise:
                     r_t += noise
             else:
-                r_t = 0.1 * np.sin(2 * np.pi * t / (T + phase_shift))
+                r_t = 0.1 * np.cos(2 * np.pi * t / (T)  + self.phase_shift[index_arm])
                 r_t = abs(r_t)
                 if not self.noNoise:
                     r_t += noise
         elif self.numOfTrueArms != 0:
             trueArms = np.arange(0,self.numOfTrueArms,1)
             if (index_arm in trueArms) and (optimalAlgPulling):
-                r_t = amplitude * np.sin(2 * np.pi * t / (T + phase_shift))
+                r_t = amplitude * np.cos(2 * np.pi * t / (T)  + self.phase_shift[index_arm])
                 r_t = abs(r_t)
             elif (index_arm in trueArms):
-                r_t = amplitude * np.sin(2 * np.pi * t / (T + phase_shift))
+                r_t = amplitude * np.cos(2 * np.pi * t / (T)  + self.phase_shift[index_arm])
                 r_t = abs(r_t)
                 if not self.noNoise:
                     r_t += noise
             else:
-                r_t = 0.1 * np.sin(2 * np.pi * t / (T + phase_shift))
+                r_t = 0.1 * np.cos(2 * np.pi * t / (T)  + self.phase_shift[index_arm])
                 r_t = -abs(r_t)
                 if not self.noNoise:
                     r_t += noise
